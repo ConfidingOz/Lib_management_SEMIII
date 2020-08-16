@@ -20,13 +20,14 @@ def close_conn(conn,c):
 
 def db_check():
 	conn, c = est_conn()
-	c.execute('CREATE TABLE IF NOT EXISTS randstuff(inix REAL, string TEXT)')
+	c.execute('''CREATE TABLE IF NOT EXISTS Students (
+		Reg. No TEXT PRIMARY KEY,
+		Name TEXT NOT NULL,
+		Phone1 INTEGER NOT NULL,
+		Pone2 INTEGER)''')
 
 def insert_data(inix, string):
 	c.execute('INSERT into randstuff (inix, string) VALUES(?, ?)', (inix, string ))
 
 def view():
 	c.execute
-
-db_check()
-insert_data()
