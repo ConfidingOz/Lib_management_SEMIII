@@ -1,0 +1,1 @@
+lease_days = 10
