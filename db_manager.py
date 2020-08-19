@@ -29,8 +29,8 @@ class Database(object):
             self.c.close()
             self.conn.close()
 
-    def convert_to_date(self, unix):
-        return datetime.datetime.fromtimestamp(unix)
+    def convert_to_date(self, date):
+        return datetime.datetime.strptime(date, '%Y-%m-%d').date()
 
     def executor(self, query, values=None):
         try:
@@ -69,8 +69,8 @@ class Database(object):
             Student_reg TEXT NOT NULL,
             Book_id INTEGER NOT NULL,
             Book_name TEXT NOT NULL,
-            Borrow_date INTEGER NOT NULL,
-            Return_date INTEGER NOT NULL,
+            Borrow_date TIMESTAMP NOT NULL,
+            Return_date TIMESTAMP NOT NULL,
             Days_to_return INTEGER,
             FOREIGN KEY (Student_reg) REFERENCES Students(Reg_No),
             FOREIGN KEY (Book_id) REFERENCES Books(Book_ID) ON DELETE CASCADE,
@@ -115,13 +115,13 @@ class Database(object):
         except Error as e:
             print(e)
 
-    def borrow_book(self, Reg_No, Book_ID, today=int(time.time()), days=lease_days):
+    def borrow_book(self, Reg_No, Book_ID, today=datetime.date.today().strftime('%Y-%m-%d'), days=lease_days):
         self.executor('SELECT Quantity, Name FROM Books where Book_id = ?', (Book_ID,))
         Total, BName = self.c.fetchall()[0]
         self.executor('SELECT Book_id FROM Borrowed_Books WHERE Book_id = ?', (Book_ID,))
         borrowed = len(self.c.fetchall())
         if Total - borrowed > 0:
-            return_date = (self.convert_to_date(today) + datetime.timedelta(days=days)).timestamp()
+            return_date = (self.convert_to_date(today) + datetime.timedelta(days=days)).strftime('%Y-%m-%d')
             values = (Reg_No, Book_ID, BName, today, return_date,)
             # print(values)
             query = '''
@@ -159,33 +159,14 @@ class Database(object):
             print(f'{i[1]}: {i[0]}')
 
     def check_leases(self):
-        today = int(time.time())
-        query = '''SELECT Student_reg, Book_name, Return_date FROM Borrowed_Books WHERE Return_date > ?'''
+        today = datetime.date.today().strftime('%Y-%m-%d')
+        query = '''SELECT Student_reg, Book_name, Return_date FROM Borrowed_Books WHERE Return_date >= ?'''
         self.executor(query, (today,))
         data = self.c.fetchall()
         reg_based = {}
         book_based = {}
         for i in data:
             print(i)
-        # for each in data:
-        #     if each[0] not in reg_based:
-        #         reg_based[each[0]] = []
-        #     reg_based[each[0]].append((each[1], self.convert_to_date(each[2]).strftime(date_format)))
-        #     if each[1] not in book_based:
-        #         book_based[each[1]] = []
-        #     book_based[each[1]].append((each[0], self.convert_to_date(each[2]).strftime(date_format)))
-        # print("Based on register number:")
-        # for key, att in reg_based.items():
-        #     print(f'{key}:')
-        #     for i in att:
-        #         print(f'{i[0]}\t{i[1]}')
-        # print('\nBased on Books:')
-        # for key, att in book_based.items():
-        #     print(f'{key}:')
-        #     for i in att:
-        #         print(f'{i[0]}\t{i[1]}')
-        # print(reg_based)
-        # print(book_based)
             
             
 
