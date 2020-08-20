@@ -115,20 +115,24 @@ class Database(object):
         except Error as e:
             print(e)
 
-    def borrow_book(self, Reg_No, Book_ID, today=datetime.date.today().strftime('%Y-%m-%d'), days=lease_days):
+    def borrow_book(self, Reg_No, Book_ID, days=lease_days):
         self.executor('SELECT Quantity, Name FROM Books where Book_id = ?', (Book_ID,))
         Total, BName = self.c.fetchall()[0]
         self.executor('SELECT Book_id FROM Borrowed_Books WHERE Book_id = ?', (Book_ID,))
         borrowed = len(self.c.fetchall())
         if Total - borrowed > 0:
+            today = datetime.date.today().strftime('%Y-%m-%d')
             return_date = (self.convert_to_date(today) + datetime.timedelta(days=days)).strftime('%Y-%m-%d')
             values = (Reg_No, Book_ID, BName, today, return_date,)
             # print(values)
-            query = '''
-            INSERT INTO Borrowed_Books(Student_reg, Book_id, Book_name, Borrow_date, Return_date)
-            VALUES(?,?,?,?,?)
-            '''
-            self.executor(query, values)
+            try:
+                query = '''
+                INSERT INTO Borrowed_Books(Student_reg, Book_id, Book_name, Borrow_date, Return_date)
+                VALUES(?,?,?,?,?)
+                '''
+                self.executor(query, values)
+            except:
+                print('The book or the student does not exist!')
         else:
             print("Book not available")
 
@@ -142,21 +146,24 @@ class Database(object):
 
     def check_book(self, BName):
         query = '''
-        SELECT Book_ID, Name FROM Books WHERE Name LIKE "%"||?||"%"
+        SELECT Book_ID, Name, Author FROM Books WHERE Name LIKE "%"||?||"%"
         '''
         self.executor(query, (BName,))
         books = self.c.fetchall()
         for i in books:
-            print(f'{i[0]}: {i[1]}')
+            print(f'{i[0]}: {i[1]} By- {i[2]}')
 
     def check_student(self, Name=None, Reg=None):
         query = '''
-        SELECT Name, Reg_No FROM Students WHERE Name LIKE "%"||?||"%" OR Reg_No LIKE "%"||?||"%"
+        SELECT Name, Reg_No, Phone, Email FROM Students WHERE Name LIKE "%"||?||"%" OR Reg_No LIKE "%"||?||"%" LIMIT 20
         '''
         self.executor(query, (Name, Reg,))
         students = self.c.fetchall()
-        for i in students:
-            print(f'{i[1]}: {i[0]}')
+        if students:
+            for i in students:
+                print(f'{i[1]}: {i[0]}, Phone: {i[2]}, Email: {i[3]}')
+        else:
+            print('Student Not Found!!')
 
     def check_leases(self):
         today = datetime.date.today().strftime('%Y-%m-%d')
