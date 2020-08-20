@@ -1,4 +1,5 @@
 import db_manager
+import sys
 
 file = 'my_data.db'
 
@@ -87,7 +88,7 @@ def menu(db):
 		# print(type(selection))
 		if selection == 'exit' or selection == 'EXIT':
 			########SOME SAVE FUNCTION########
-			exit()
+			sys.exit(0)
 		elif int(selection) in valid_selections:
 			functions[int(selection)-1](db)
 		else:
