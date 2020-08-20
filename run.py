@@ -35,6 +35,7 @@ def remove_book(db):
 	print('\n')
 
 def lease_book(db):
+	check_book(db, True)
 	Reg = input('Enter the Reg No. of the student: ')
 	Book_id = int(input('Enter the ID of the book to loan: '))
 	db.borrow_book(Reg, Book_id)
@@ -46,10 +47,11 @@ def return_book(db):
 	db.return_book(Reg, Book_id)
 	print('\n')
 
-def check_book(db):
+def check_book(db, sk=False):
 	Name = input('Enter the book Name: ')
 	db.check_book(Name)
-	input()
+	if not sk:
+		input()
 	print('\n')
 
 def check_student(db):
@@ -89,6 +91,7 @@ def menu(db):
 		if selection == 'exit' or selection == 'EXIT':
 			########SOME SAVE FUNCTION########
 			sys.exit(0)
+			quit()
 		elif int(selection) in valid_selections:
 			functions[int(selection)-1](db)
 		else:
